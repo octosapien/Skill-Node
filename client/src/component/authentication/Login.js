@@ -1,39 +1,17 @@
 import { useContext, useState } from "react";
-import {
-  Grid,
-  TextField,
-  Button,
-  Typography,
-  makeStyles,
-  Paper,
-} from "@material-ui/core";
+import { useNavigate } from "react-router-dom"; // React Router v6
 import axios from "axios";
-import { Redirect } from "react-router-dom";
-
+import { Box, Button, Paper, TextField, Typography } from "@mui/material"; // Material UI v5
 import PasswordInput from "../../modules/PasswordInput";
 import EmailInput from "../../modules/EmailInput";
 import { SetPopupContext } from "../../App";
-
 import apiList from "../../modules/apiList";
 import isAuth from "../../modules/isAuth";
 
-const useStyles = makeStyles((theme) => ({
-  body: {
-    padding: "60px 60px",
-  },
-  inputBox: {
-    width: "300px",
-  },
-  submitButton: {
-    width: "300px",
-  },
-}));
-
 const Login = (props) => {
-  const classes = useStyles();
   const setPopup = useContext(SetPopupContext);
-
   const [loggedin, setLoggedin] = useState(isAuth());
+  const navigate = useNavigate(); // React Router v6
 
   const [loginDetails, setLoginDetails] = useState({
     email: "",
@@ -84,6 +62,7 @@ const Login = (props) => {
             severity: "success",
             message: "Logged in successfully",
           });
+          navigate("/"); // Use navigate to redirect
           console.log(response);
         })
         .catch((err) => {
@@ -104,45 +83,62 @@ const Login = (props) => {
   };
 
   return loggedin ? (
-    <Redirect to="/" />
+    navigate("/") // Navigate if already logged in
   ) : (
-    <Paper elevation={3} className={classes.body}>
-      <Grid container direction="column" spacing={4} alignItems="center">
-        <Grid item>
-          <Typography variant="h3" component="h2">
-            Login
-          </Typography>
-        </Grid>
-        <Grid item>
-          <EmailInput
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+      }}
+    >
+      <Paper elevation={3} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
+        <Typography variant="h4" component="h1" align="center" gutterBottom>
+          Login
+        </Typography>
+        <Box sx={{ mt: 2 }}>
+          <TextField
             label="Email"
+            fullWidth
+            margin="normal"
             value={loginDetails.email}
             onChange={(event) => handleInput("email", event.target.value)}
-            inputErrorHandler={inputErrorHandler}
-            handleInputError={handleInputError}
-            className={classes.inputBox}
+            error={inputErrorHandler.email.error}
+            helperText={inputErrorHandler.email.message}
           />
-        </Grid>
-        <Grid item>
-          <PasswordInput
+          <TextField
             label="Password"
+            fullWidth
+            margin="normal"
+            type="password"
             value={loginDetails.password}
             onChange={(event) => handleInput("password", event.target.value)}
-            className={classes.inputBox}
+            error={inputErrorHandler.password.error}
+            helperText={inputErrorHandler.password.message}
           />
-        </Grid>
-        <Grid item>
           <Button
+            onClick={handleLogin}
             variant="contained"
-            color="primary"
-            onClick={() => handleLogin()}
-            className={classes.submitButton}
+            fullWidth
+            sx={{
+              fontSize: '16px',
+              fontWeight: 'bold',
+              mt: 2,
+              color: "green",
+              bgcolor: "black",
+              ":hover": {
+                bgcolor: "#00cc00",
+                color: "black",
+              },
+            }}
           >
             Login
           </Button>
-        </Grid>
-      </Grid>
-    </Paper>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

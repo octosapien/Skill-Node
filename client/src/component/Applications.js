@@ -5,7 +5,6 @@ import {
   Grid,
   IconButton,
   InputAdornment,
-  makeStyles,
   Paper,
   TextField,
   Typography,
@@ -15,42 +14,14 @@ import {
   FormGroup,
   MenuItem,
   Checkbox,
-} from "@material-ui/core";
-import Rating from "@material-ui/lab/Rating";
+  Rating,
+} from "@mui/material";
 import axios from "axios";
-
 import { SetPopupContext } from "../App";
-
 import apiList from "../modules/apiList";
-
-const useStyles = makeStyles((theme) => ({
-  body: {
-    height: "inherit",
-  },
-  statusBlock: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textTransform: "uppercase",
-  },
-  jobTileOuter: {
-    padding: "30px",
-    margin: "20px 0",
-    boxSizing: "border-box",
-    width: "100%",
-  },
-  popupDialog: {
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-}));
+import { styled } from "@mui/material/styles";
 
 const ApplicationTile = (props) => {
-  const classes = useStyles();
   const { application } = props;
   const setPopup = useContext(SetPopupContext);
   const [open, setOpen] = useState(false);
@@ -71,7 +42,6 @@ const ApplicationTile = (props) => {
         console.log(response.data);
       })
       .catch((err) => {
-        // console.log(err.response);
         console.log(err.response.data);
         setPopup({
           open: true,
@@ -103,7 +73,6 @@ const ApplicationTile = (props) => {
         setOpen(false);
       })
       .catch((err) => {
-        // console.log(err.response);
         console.log(err);
         setPopup({
           open: true,
@@ -130,7 +99,7 @@ const ApplicationTile = (props) => {
   };
 
   return (
-    <Paper className={classes.jobTileOuter} elevation={3}>
+    <Paper sx={{ padding: "30px", margin: "20px 0", width: "100%" }} elevation={3}>
       <Grid container>
         <Grid container item xs={9} spacing={1} direction="column">
           <Grid item>
@@ -147,34 +116,35 @@ const ApplicationTile = (props) => {
           </Grid>
           <Grid item>
             {application.job.skillsets.map((skill) => (
-              <Chip label={skill} style={{ marginRight: "2px" }} />
+              <Chip key={skill} label={skill} sx={{ marginRight: "2px" }} />
             ))}
           </Grid>
           <Grid item>Applied On: {appliedOn.toLocaleDateString()}</Grid>
-          {application.status === "accepted" ||
-          application.status === "finished" ? (
+          {application.status === "accepted" || application.status === "finished" ? (
             <Grid item>Joined On: {joinedOn.toLocaleDateString()}</Grid>
           ) : null}
         </Grid>
         <Grid item container direction="column" xs={3}>
           <Grid item xs>
             <Paper
-              className={classes.statusBlock}
-              style={{
+              sx={{
                 background: colorSet[application.status],
                 color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
               }}
             >
               {application.status}
             </Paper>
           </Grid>
-          {application.status === "accepted" ||
-          application.status === "finished" ? (
+          {application.status === "accepted" || application.status === "finished" ? (
             <Grid item>
               <Button
                 variant="contained"
                 color="primary"
-                className={classes.statusBlock}
+                sx={{ width: "100%", height: "100%" }}
                 onClick={() => {
                   fetchRating();
                   setOpen(true);
@@ -186,9 +156,9 @@ const ApplicationTile = (props) => {
           ) : null}
         </Grid>
       </Grid>
-      <Modal open={open} onClose={handleClose} className={classes.popupDialog}>
+      <Modal open={open} onClose={handleClose}>
         <Paper
-          style={{
+          sx={{
             padding: "20px",
             outline: "none",
             display: "flex",
@@ -200,7 +170,7 @@ const ApplicationTile = (props) => {
         >
           <Rating
             name="simple-controlled"
-            style={{ marginBottom: "30px" }}
+            sx={{ marginBottom: "30px" }}
             value={rating === -1 ? null : rating}
             onChange={(event, newValue) => {
               setRating(newValue);
@@ -209,7 +179,7 @@ const ApplicationTile = (props) => {
           <Button
             variant="contained"
             color="primary"
-            style={{ padding: "10px 50px" }}
+            sx={{ padding: "10px 50px" }}
             onClick={() => changeRating()}
           >
             Submit
@@ -240,7 +210,6 @@ const Applications = (props) => {
         setApplications(response.data);
       })
       .catch((err) => {
-        // console.log(err.response);
         console.log(err.response.data);
         setPopup({
           open: true,
@@ -256,7 +225,7 @@ const Applications = (props) => {
       item
       direction="column"
       alignItems="center"
-      style={{ padding: "30px", minHeight: "93vh" }}
+      sx={{ padding: "30px", minHeight: "93vh" }}
     >
       <Grid item>
         <Typography variant="h2">Applications</Typography>
@@ -266,18 +235,18 @@ const Applications = (props) => {
         item
         xs
         direction="column"
-        style={{ width: "100%" }}
+        sx={{ width: "100%" }}
         alignItems="stretch"
-        justify="center"
+        justifyContent="center"
       >
         {applications.length > 0 ? (
           applications.map((obj) => (
-            <Grid item>
+            <Grid item key={obj._id}>
               <ApplicationTile application={obj} />
             </Grid>
           ))
         ) : (
-          <Typography variant="h5" style={{ textAlign: "center" }}>
+          <Typography variant="h5" sx={{ textAlign: "center" }}>
             No Applications Found
           </Typography>
         )}

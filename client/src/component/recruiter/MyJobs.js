@@ -1,357 +1,75 @@
-import { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
-  Button,
-  Chip,
   Grid,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Modal,
+  FormControlLabel,
+  Checkbox,
   IconButton,
   InputAdornment,
-  makeStyles,
-  Paper,
-  TextField,
-  Typography,
-  Modal,
   Slider,
-  FormControlLabel,
-  FormGroup,
   MenuItem,
-  Checkbox,
-} from "@material-ui/core";
-import { useHistory } from "react-router-dom";
-import Rating from "@material-ui/lab/Rating";
-import Pagination from "@material-ui/lab/Pagination";
+  Card,
+  CardContent,
+  CardActions,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import axios from "axios";
-import SearchIcon from "@material-ui/icons/Search";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
-import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
-
-import { SetPopupContext } from "../../App";
-
 import apiList from "../../modules/apiList";
+import { SetPopupContext } from "../../App"; // Assuming context from App.js
 
-const useStyles = makeStyles((theme) => ({
-  body: {
-    height: "inherit",
-  },
-  button: {
-    width: "100%",
-    height: "100%",
-  },
-  jobTileOuter: {
-    padding: "30px",
-    margin: "20px 0",
-    boxSizing: "border-box",
-    width: "100%",
-  },
+const useStyles = makeStyles(() => ({
   popupDialog: {
-    height: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-  },
-  statusBlock: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textTransform: "uppercase",
   },
 }));
 
-const JobTile = (props) => {
-  const classes = useStyles();
-  let history = useHistory();
-  const { job, getData } = props;
-  const setPopup = useContext(SetPopupContext);
-
-  const [open, setOpen] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
-  const [jobDetails, setJobDetails] = useState(job);
-
-  console.log(jobDetails);
-
-  const handleInput = (key, value) => {
-    setJobDetails({
-      ...jobDetails,
-      [key]: value,
-    });
-  };
-
-  const handleClick = (location) => {
-    history.push(location);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleCloseUpdate = () => {
-    setOpenUpdate(false);
-  };
-
-  const handleDelete = () => {
-    console.log(job._id);
-    axios
-      .delete(`${apiList.jobs}/${job._id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((response) => {
-        setPopup({
-          open: true,
-          severity: "success",
-          message: response.data.message,
-        });
-        getData();
-        handleClose();
-      })
-      .catch((err) => {
-        console.log(err.response);
-        setPopup({
-          open: true,
-          severity: "error",
-          message: err.response.data.message,
-        });
-        handleClose();
-      });
-  };
-
-  const handleJobUpdate = () => {
-    axios
-      .put(`${apiList.jobs}/${job._id}`, jobDetails, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((response) => {
-        setPopup({
-          open: true,
-          severity: "success",
-          message: response.data.message,
-        });
-        getData();
-        handleCloseUpdate();
-      })
-      .catch((err) => {
-        console.log(err.response);
-        setPopup({
-          open: true,
-          severity: "error",
-          message: err.response.data.message,
-        });
-        handleCloseUpdate();
-      });
-  };
-
-  const postedOn = new Date(job.dateOfPosting);
-
+const JobTile = ({ job, getData }) => {
   return (
-    <Paper className={classes.jobTileOuter} elevation={3}>
-      <Grid container>
-        <Grid container item xs={9} spacing={1} direction="column">
-          <Grid item>
-            <Typography variant="h5">{job.title}</Typography>
-          </Grid>
-          <Grid item>
-            <Rating value={job.rating !== -1 ? job.rating : null} readOnly />
-          </Grid>
-          <Grid item>Role : {job.jobType}</Grid>
-          <Grid item>Salary : &#8377; {job.salary} per month</Grid>
-          <Grid item>
-            Duration :{" "}
-            {job.duration !== 0 ? `${job.duration} month` : `Flexible`}
-          </Grid>
-          <Grid item>Date Of Posting: {postedOn.toLocaleDateString()}</Grid>
-          <Grid item>Number of Applicants: {job.maxApplicants}</Grid>
-          <Grid item>
-            Remaining Number of Positions:{" "}
-            {job.maxPositions - job.acceptedCandidates}
-          </Grid>
-          <Grid item>
-            {job.skillsets.map((skill) => (
-              <Chip label={skill} style={{ marginRight: "2px" }} />
-            ))}
-          </Grid>
-        </Grid>
-        <Grid item container direction="column" xs={3}>
-          <Grid item xs>
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.statusBlock}
-              onClick={() => handleClick(`/job/applications/${job._id}`)}
-            >
-              View Applications
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              className={classes.statusBlock}
-              onClick={() => {
-                setOpenUpdate(true);
-              }}
-              style={{
-                background: "#FC7A1E",
-                color: "#fff",
-              }}
-            >
-              Update Details
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              color="secondary"
-              className={classes.statusBlock}
-              onClick={() => {
-                setOpen(true);
-              }}
-            >
-              Delete Job
-            </Button>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Modal open={open} onClose={handleClose} className={classes.popupDialog}>
-        <Paper
-          style={{
-            padding: "20px",
-            outline: "none",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            minWidth: "30%",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h4" style={{ marginBottom: "10px" }}>
-            Are you sure?
+    <Grid item xs={12} sm={6} md={4} lg={3}>
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {job.title}
           </Typography>
-          <Grid container justify="center" spacing={5}>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="secondary"
-                style={{ padding: "10px 50px" }}
-                onClick={() => handleDelete()}
-              >
-                Delete
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                style={{ padding: "10px 50px" }}
-                onClick={() => handleClose()}
-              >
-                Cancel
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      </Modal>
-      <Modal
-        open={openUpdate}
-        onClose={handleCloseUpdate}
-        className={classes.popupDialog}
-      >
-        <Paper
-          style={{
-            padding: "20px",
-            outline: "none",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            minWidth: "30%",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h4" style={{ marginBottom: "10px" }}>
-            Update Details
+          <Typography variant="body1" color="textSecondary">
+            {job.company}
           </Typography>
-          <Grid
-            container
-            direction="column"
-            spacing={3}
-            style={{ margin: "10px" }}
-          >
-            <Grid item>
-              <TextField
-                label="Application Deadline"
-                type="datetime-local"
-                value={jobDetails.deadline.substr(0, 16)}
-                onChange={(event) => {
-                  handleInput("deadline", event.target.value);
-                }}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                variant="outlined"
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Maximum Number Of Applicants"
-                type="number"
-                variant="outlined"
-                value={jobDetails.maxApplicants}
-                onChange={(event) => {
-                  handleInput("maxApplicants", event.target.value);
-                }}
-                InputProps={{ inputProps: { min: 1 } }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                label="Positions Available"
-                type="number"
-                variant="outlined"
-                value={jobDetails.maxPositions}
-                onChange={(event) => {
-                  handleInput("maxPositions", event.target.value);
-                }}
-                InputProps={{ inputProps: { min: 1 } }}
-                fullWidth
-              />
-            </Grid>
-          </Grid>
-          <Grid container justify="center" spacing={5}>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="secondary"
-                style={{ padding: "10px 50px" }}
-                onClick={() => handleJobUpdate()}
-              >
-                Update
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                style={{ padding: "10px 50px" }}
-                onClick={() => handleCloseUpdate()}
-              >
-                Cancel
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      </Modal>
-    </Paper>
+          <Typography variant="body2" color="textSecondary">
+            {job.location}
+          </Typography>
+          <Typography variant="body2" color="textPrimary">
+            Salary: ${job.salary}
+          </Typography>
+          <Typography variant="body2" color="textPrimary">
+            Duration: {job.duration} months
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button size="small" color="primary">
+            Apply
+          </Button>
+          <IconButton aria-label="save">
+            <BookmarkBorderIcon />
+          </IconButton>
+        </CardActions>
+      </Card>
+    </Grid>
   );
 };
 
-const FilterPopup = (props) => {
+const FilterPopup = ({ open, handleClose, searchOptions, setSearchOptions, getData }) => {
   const classes = useStyles();
-  const { open, handleClose, searchOptions, setSearchOptions, getData } = props;
   return (
     <Modal open={open} onClose={handleClose} className={classes.popupDialog}>
       <Paper
@@ -366,75 +84,32 @@ const FilterPopup = (props) => {
             <Grid item xs={3}>
               Job Type
             </Grid>
-            <Grid
-              container
-              item
-              xs={9}
-              justify="space-around"
-              // alignItems="center"
-            >
-              <Grid item>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="fullTime"
-                      checked={searchOptions.jobType.fullTime}
-                      onChange={(event) => {
-                        setSearchOptions({
-                          ...searchOptions,
-                          jobType: {
-                            ...searchOptions.jobType,
-                            [event.target.name]: event.target.checked,
-                          },
-                        });
-                      }}
-                    />
-                  }
-                  label="Full Time"
-                />
-              </Grid>
-              <Grid item>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="partTime"
-                      checked={searchOptions.jobType.partTime}
-                      onChange={(event) => {
-                        setSearchOptions({
-                          ...searchOptions,
-                          jobType: {
-                            ...searchOptions.jobType,
-                            [event.target.name]: event.target.checked,
-                          },
-                        });
-                      }}
-                    />
-                  }
-                  label="Part Time"
-                />
-              </Grid>
-              <Grid item>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="wfh"
-                      checked={searchOptions.jobType.wfh}
-                      onChange={(event) => {
-                        setSearchOptions({
-                          ...searchOptions,
-                          jobType: {
-                            ...searchOptions.jobType,
-                            [event.target.name]: event.target.checked,
-                          },
-                        });
-                      }}
-                    />
-                  }
-                  label="Work From Home"
-                />
-              </Grid>
+            <Grid container item xs={9} justifyContent="space-around">
+              {["fullTime", "partTime", "wfh"].map((type) => (
+                <Grid item key={type}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name={type}
+                        checked={searchOptions.jobType[type]}
+                        onChange={(event) => {
+                          setSearchOptions({
+                            ...searchOptions,
+                            jobType: {
+                              ...searchOptions.jobType,
+                              [event.target.name]: event.target.checked,
+                            },
+                          });
+                        }}
+                      />
+                    }
+                    label={type.charAt(0).toUpperCase() + type.slice(1)}
+                  />
+                </Grid>
+              ))}
             </Grid>
           </Grid>
+
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Salary
@@ -442,9 +117,7 @@ const FilterPopup = (props) => {
             <Grid item xs={9}>
               <Slider
                 valueLabelDisplay="auto"
-                valueLabelFormat={(value) => {
-                  return value * (100000 / 100);
-                }}
+                valueLabelFormat={(value) => value * (100000 / 100)}
                 marks={[
                   { value: 0, label: "0" },
                   { value: 100, label: "100000" },
@@ -459,6 +132,7 @@ const FilterPopup = (props) => {
               />
             </Grid>
           </Grid>
+
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Duration
@@ -478,189 +152,77 @@ const FilterPopup = (props) => {
                 }
               >
                 <MenuItem value="0">All</MenuItem>
-                <MenuItem value="1">1</MenuItem>
-                <MenuItem value="2">2</MenuItem>
-                <MenuItem value="3">3</MenuItem>
-                <MenuItem value="4">4</MenuItem>
-                <MenuItem value="5">5</MenuItem>
-                <MenuItem value="6">6</MenuItem>
-                <MenuItem value="7">7</MenuItem>
+                {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                  <MenuItem key={value} value={value}>
+                    {value}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
           </Grid>
+
+          {/* Sorting Section */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Sort
             </Grid>
-            <Grid item container direction="row" xs={9}>
-              <Grid
-                item
-                container
-                xs={4}
-                justify="space-around"
-                alignItems="center"
-                style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
-              >
-                <Grid item>
-                  <Checkbox
-                    name="salary"
-                    checked={searchOptions.sort.salary.status}
-                    onChange={(event) =>
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          salary: {
-                            ...searchOptions.sort.salary,
-                            status: event.target.checked,
+            <Grid item container xs={9}>
+              {["salary", "duration", "rating"].map((key) => (
+                <Grid
+                  item
+                  container
+                  xs={4}
+                  key={key}
+                  justifyContent="space-around"
+                  alignItems="center"
+                  style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
+                >
+                  <Grid item>
+                    <Checkbox
+                      name={key}
+                      checked={searchOptions.sort[key].status}
+                      onChange={(event) =>
+                        setSearchOptions({
+                          ...searchOptions,
+                          sort: {
+                            ...searchOptions.sort,
+                            [key]: {
+                              ...searchOptions.sort[key],
+                              status: event.target.checked,
+                            },
                           },
-                        },
-                      })
-                    }
-                    id="salary"
-                  />
-                </Grid>
-                <Grid item>
-                  <label for="salary">
-                    <Typography>Salary</Typography>
-                  </label>
-                </Grid>
-                <Grid item>
-                  <IconButton
-                    disabled={!searchOptions.sort.salary.status}
-                    onClick={() => {
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          salary: {
-                            ...searchOptions.sort.salary,
-                            desc: !searchOptions.sort.salary.desc,
+                        })
+                      }
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Typography>{key.charAt(0).toUpperCase() + key.slice(1)}</Typography>
+                  </Grid>
+                  <Grid item>
+                    <IconButton
+                      disabled={!searchOptions.sort[key].status}
+                      onClick={() => {
+                        setSearchOptions({
+                          ...searchOptions,
+                          sort: {
+                            ...searchOptions.sort,
+                            [key]: {
+                              ...searchOptions.sort[key],
+                              desc: !searchOptions.sort[key].desc,
+                            },
                           },
-                        },
-                      });
-                    }}
-                  >
-                    {searchOptions.sort.salary.desc ? (
-                      <ArrowDownwardIcon />
-                    ) : (
-                      <ArrowUpwardIcon />
-                    )}
-                  </IconButton>
+                        });
+                      }}
+                    >
+                      {searchOptions.sort[key].desc ? (
+                        <ArrowDownwardIcon />
+                      ) : (
+                        <ArrowUpwardIcon />
+                      )}
+                    </IconButton>
+                  </Grid>
                 </Grid>
-              </Grid>
-              <Grid
-                item
-                container
-                xs={4}
-                justify="space-around"
-                alignItems="center"
-                style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
-              >
-                <Grid item>
-                  <Checkbox
-                    name="duration"
-                    checked={searchOptions.sort.duration.status}
-                    onChange={(event) =>
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          duration: {
-                            ...searchOptions.sort.duration,
-                            status: event.target.checked,
-                          },
-                        },
-                      })
-                    }
-                    id="duration"
-                  />
-                </Grid>
-                <Grid item>
-                  <label for="duration">
-                    <Typography>Duration</Typography>
-                  </label>
-                </Grid>
-                <Grid item>
-                  <IconButton
-                    disabled={!searchOptions.sort.duration.status}
-                    onClick={() => {
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          duration: {
-                            ...searchOptions.sort.duration,
-                            desc: !searchOptions.sort.duration.desc,
-                          },
-                        },
-                      });
-                    }}
-                  >
-                    {searchOptions.sort.duration.desc ? (
-                      <ArrowDownwardIcon />
-                    ) : (
-                      <ArrowUpwardIcon />
-                    )}
-                  </IconButton>
-                </Grid>
-              </Grid>
-              <Grid
-                item
-                container
-                xs={4}
-                justify="space-around"
-                alignItems="center"
-                style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
-              >
-                <Grid item>
-                  <Checkbox
-                    name="rating"
-                    checked={searchOptions.sort.rating.status}
-                    onChange={(event) =>
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          rating: {
-                            ...searchOptions.sort.rating,
-                            status: event.target.checked,
-                          },
-                        },
-                      })
-                    }
-                    id="rating"
-                  />
-                </Grid>
-                <Grid item>
-                  <label for="rating">
-                    <Typography>Rating</Typography>
-                  </label>
-                </Grid>
-                <Grid item>
-                  <IconButton
-                    disabled={!searchOptions.sort.rating.status}
-                    onClick={() => {
-                      setSearchOptions({
-                        ...searchOptions,
-                        sort: {
-                          ...searchOptions.sort,
-                          rating: {
-                            ...searchOptions.sort.rating,
-                            desc: !searchOptions.sort.rating.desc,
-                          },
-                        },
-                      });
-                    }}
-                  >
-                    {searchOptions.sort.rating.desc ? (
-                      <ArrowDownwardIcon />
-                    ) : (
-                      <ArrowUpwardIcon />
-                    )}
-                  </IconButton>
-                </Grid>
-              </Grid>
+              ))}
             </Grid>
           </Grid>
 
@@ -709,102 +271,61 @@ const MyJobs = (props) => {
   });
 
   const setPopup = useContext(SetPopupContext);
+
   useEffect(() => {
     getData();
   }, []);
 
   const getData = () => {
     let searchParams = [`myjobs=1`];
-    if (searchOptions.query !== "") {
-      searchParams = [...searchParams, `q=${searchOptions.query}`];
-    }
-    if (searchOptions.jobType.fullTime) {
-      searchParams = [...searchParams, `jobType=Full%20Time`];
-    }
-    if (searchOptions.jobType.partTime) {
-      searchParams = [...searchParams, `jobType=Part%20Time`];
-    }
-    if (searchOptions.jobType.wfh) {
-      searchParams = [...searchParams, `jobType=Work%20From%20Home`];
-    }
-    if (searchOptions.salary[0] != 0) {
-      searchParams = [
-        ...searchParams,
-        `salaryMin=${searchOptions.salary[0] * 1000}`,
-      ];
-    }
-    if (searchOptions.salary[1] != 100) {
-      searchParams = [
-        ...searchParams,
-        `salaryMax=${searchOptions.salary[1] * 1000}`,
-      ];
-    }
-    if (searchOptions.duration != "0") {
-      searchParams = [...searchParams, `duration=${searchOptions.duration}`];
-    }
+    if (searchOptions.query !== "") searchParams.push(`q=${searchOptions.query}`);
+    if (searchOptions.jobType.fullTime) searchParams.push(`jobType=Full%20Time`);
+    if (searchOptions.jobType.partTime) searchParams.push(`jobType=Part%20Time`);
+    if (searchOptions.jobType.wfh) searchParams.push(`jobType=Work%20From%20Home`);
+    if (searchOptions.salary[0] !== 0) searchParams.push(`salaryMin=${searchOptions.salary[0] * 1000}`);
+    if (searchOptions.salary[1] !== 100) searchParams.push(`salaryMax=${searchOptions.salary[1] * 1000}`);
+    if (searchOptions.duration !== "0") searchParams.push(`duration=${searchOptions.duration}`);
 
-    let asc = [],
-      desc = [];
-
-    Object.keys(searchOptions.sort).forEach((obj) => {
-      const item = searchOptions.sort[obj];
-      if (item.status) {
-        if (item.desc) {
-          desc = [...desc, `desc=${obj}`];
+    let asc = [], desc = [];
+    Object.keys(searchOptions.sort).forEach((key) => {
+      const sortOption = searchOptions.sort[key];
+      if (sortOption.status) {
+        if (sortOption.desc) {
+          desc.push(`desc=${key}`);
         } else {
-          asc = [...asc, `asc=${obj}`];
+          asc.push(`asc=${key}`);
         }
       }
     });
+
     searchParams = [...searchParams, ...asc, ...desc];
     const queryString = searchParams.join("&");
-    console.log(queryString);
-    let address = apiList.jobs;
-    if (queryString !== "") {
-      address = `${address}?${queryString}`;
-    }
+    const address = `${apiList.jobs}${queryString ? `?${queryString}` : ""}`;
 
-    console.log(address);
     axios
       .get(address, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
-      .then((response) => {
-        console.log(response.data);
-        setJobs(response.data);
-      })
-      .catch((err) => {
-        console.log(err.response.data);
+      .then((response) => setJobs(response.data))
+      .catch((err) =>
         setPopup({
           open: true,
           severity: "error",
-          message: "Error",
-        });
-      });
+          message: "Error fetching jobs",
+        })
+      );
   };
 
   return (
     <>
-      <Grid
-        container
-        item
-        direction="column"
-        alignItems="center"
-        style={{ padding: "30px", minHeight: "93vh" }}
-      >
-        <Grid
-          item
-          container
-          direction="column"
-          justify="center"
-          alignItems="center"
-        >
-          <Grid item xs>
-            <Typography variant="h2">My Jobs</Typography>
+      <Grid container direction="column" alignItems="center" style={{ padding: "30px", minHeight: "93vh" }}>
+        <Grid container item alignItems="center" justifyContent="space-between">
+          <Grid item>
+            <Typography variant="h4">My Jobs</Typography>
           </Grid>
-          <Grid item xs>
+          <Grid item>
             <TextField
               label="Search Jobs"
               value={searchOptions.query}
@@ -815,20 +336,18 @@ const MyJobs = (props) => {
                 })
               }
               onKeyPress={(ev) => {
-                if (ev.key === "Enter") {
-                  getData();
-                }
+                if (ev.key === "Enter") getData();
               }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment>
-                    <IconButton onClick={() => getData()}>
+                    <IconButton onClick={getData}>
                       <SearchIcon />
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              style={{ width: "500px" }}
+              style={{ width: "300px" }}
               variant="outlined"
             />
           </Grid>
@@ -839,18 +358,9 @@ const MyJobs = (props) => {
           </Grid>
         </Grid>
 
-        <Grid
-          container
-          item
-          xs
-          direction="column"
-          alignItems="stretch"
-          justify="center"
-        >
+        <Grid container item direction="column" alignItems="stretch" justifyContent="center">
           {jobs.length > 0 ? (
-            jobs.map((job) => {
-              return <JobTile job={job} getData={getData} />;
-            })
+            jobs.map((job) => <JobTile key={job._id} job={job} getData={getData} />)
           ) : (
             <Typography variant="h5" style={{ textAlign: "center" }}>
               No jobs found
@@ -860,13 +370,10 @@ const MyJobs = (props) => {
       </Grid>
       <FilterPopup
         open={filterOpen}
+        handleClose={() => setFilterOpen(false)}
         searchOptions={searchOptions}
         setSearchOptions={setSearchOptions}
-        handleClose={() => setFilterOpen(false)}
-        getData={() => {
-          getData();
-          setFilterOpen(false);
-        }}
+        getData={getData}
       />
     </>
   );

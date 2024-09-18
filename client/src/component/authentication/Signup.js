@@ -1,123 +1,31 @@
-import { useState, useContext } from "react";
+import React, { useState, useContext } from "react";
 import {
   Grid,
   TextField,
   Button,
   Typography,
-  makeStyles,
   Paper,
   MenuItem,
-  Input,
-} from "@material-ui/core";
+  Chip,
+  Box
+} from "@mui/material";
 import axios from "axios";
-import { Redirect } from "react-router-dom";
-import ChipInput from "material-ui-chip-input";
-import DescriptionIcon from "@material-ui/icons/Description";
-import FaceIcon from "@material-ui/icons/Face";
+import { Navigate } from "react-router-dom";
+import DescriptionIcon from "@mui/icons-material/Description";
+import FaceIcon from "@mui/icons-material/Face";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/material.css";
 
-import PasswordInput from "../../modules/PasswordInput";
-import EmailInput from "../../modules/EmailInput";
+import PasswordInput from "../../modules/PasswordInput";  // Ensure this component is updated
+import EmailInput from "../../modules/EmailInput"; // Ensure this component is updated
 import FileUploadInput from "../../modules/FileUploadInput";
 import { SetPopupContext } from "../../App";
 
 import apiList from "../../modules/apiList";
 import isAuth from "../../modules/isAuth";
 
-const useStyles = makeStyles((theme) => ({
-  body: {
-    padding: "60px 60px",
-  },
-  inputBox: {
-    width: "400px",
-  },
-  submitButton: {
-    width: "400px",
-  },
-}));
-
-const MultifieldInput = (props) => {
-  const classes = useStyles();
-  const { education, setEducation } = props;
-
-  return (
-    <>
-      {education.map((obj, key) => (
-        <Grid
-          item
-          container
-          className={classes.inputBox}
-          key={key}
-          style={{ paddingLeft: 0, paddingRight: 0 }}
-        >
-          <Grid item xs={6}>
-            <TextField
-              label={`Institution Name #${key + 1}`}
-              value={education[key].institutionName}
-              onChange={(event) => {
-                const newEdu = [...education];
-                newEdu[key].institutionName = event.target.value;
-                setEducation(newEdu);
-              }}
-              variant="outlined"
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              label="Start Year"
-              value={obj.startYear}
-              variant="outlined"
-              type="number"
-              onChange={(event) => {
-                const newEdu = [...education];
-                newEdu[key].startYear = event.target.value;
-                setEducation(newEdu);
-              }}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              label="End Year"
-              value={obj.endYear}
-              variant="outlined"
-              type="number"
-              onChange={(event) => {
-                const newEdu = [...education];
-                newEdu[key].endYear = event.target.value;
-                setEducation(newEdu);
-              }}
-            />
-          </Grid>
-        </Grid>
-      ))}
-      <Grid item>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() =>
-            setEducation([
-              ...education,
-              {
-                institutionName: "",
-                startYear: "",
-                endYear: "",
-              },
-            ])
-          }
-          className={classes.inputBox}
-        >
-          Add another institution details
-        </Button>
-      </Grid>
-    </>
-  );
-};
-
-const Login = (props) => {
-  const classes = useStyles();
+const Signup = () => {
   const setPopup = useContext(SetPopupContext);
-
   const [loggedin, setLoggedin] = useState(isAuth());
 
   const [signupDetails, setSignupDetails] = useState({
@@ -131,16 +39,17 @@ const Login = (props) => {
     profile: "",
     bio: "",
     contactNumber: "",
+    companyName: "",
+    companyWebsite: ""
   });
 
   const [phone, setPhone] = useState("");
-
   const [education, setEducation] = useState([
     {
       institutionName: "",
       startYear: "",
-      endYear: "",
-    },
+      endYear: ""
+    }
   ]);
 
   const [inputErrorHandler, setInputErrorHandler] = useState({
@@ -148,26 +57,26 @@ const Login = (props) => {
       untouched: true,
       required: true,
       error: false,
-      message: "",
+      message: ""
     },
     password: {
       untouched: true,
       required: true,
       error: false,
-      message: "",
+      message: ""
     },
     name: {
       untouched: true,
       required: true,
       error: false,
-      message: "",
-    },
+      message: ""
+    }
   });
 
   const handleInput = (key, value) => {
     setSignupDetails({
       ...signupDetails,
-      [key]: value,
+      [key]: value
     });
   };
 
@@ -178,8 +87,8 @@ const Login = (props) => {
         required: true,
         untouched: false,
         error: status,
-        message: message,
-      },
+        message: message
+      }
     });
   };
 
@@ -191,14 +100,12 @@ const Login = (props) => {
           required: true,
           untouched: false,
           error: true,
-          message: `${obj[0].toUpperCase() + obj.substr(1)} is required`,
+          message: `${obj[0].toUpperCase() + obj.substr(1)} is required`
         };
       } else {
         tmpErrorHandler[obj] = inputErrorHandler[obj];
       }
     });
-
-    console.log(education);
 
     let updatedDetails = {
       ...signupDetails,
@@ -209,7 +116,7 @@ const Login = (props) => {
             delete obj["endYear"];
           }
           return obj;
-        }),
+        })
     };
 
     setSignupDetails(updatedDetails);
@@ -228,102 +135,39 @@ const Login = (props) => {
           setPopup({
             open: true,
             severity: "success",
-            message: "Logged in successfully",
+            message: "Signed up successfully"
           });
-          console.log(response);
         })
         .catch((err) => {
           setPopup({
             open: true,
             severity: "error",
-            message: err.response.data.message,
+            message:
+              err.response?.data?.message || "An error occurred. Please try again."
           });
-          console.log(err.response);
         });
     } else {
       setInputErrorHandler(tmpErrorHandler);
       setPopup({
         open: true,
         severity: "error",
-        message: "Incorrect Input",
+        message: "Incorrect Input"
       });
     }
   };
 
-  const handleLoginRecruiter = () => {
-    const tmpErrorHandler = {};
-    Object.keys(inputErrorHandler).forEach((obj) => {
-      if (inputErrorHandler[obj].required && inputErrorHandler[obj].untouched) {
-        tmpErrorHandler[obj] = {
-          required: true,
-          untouched: false,
-          error: true,
-          message: `${obj[0].toUpperCase() + obj.substr(1)} is required`,
-        };
-      } else {
-        tmpErrorHandler[obj] = inputErrorHandler[obj];
-      }
-    });
+  const handleChipAdd = (chip) => {
+    handleInput("skills", [...signupDetails.skills, chip]);
+  };
 
-    let updatedDetails = {
-      ...signupDetails,
-    };
-    if (phone !== "") {
-      updatedDetails = {
-        ...signupDetails,
-        contactNumber: `+${phone}`,
-      };
-    } else {
-      updatedDetails = {
-        ...signupDetails,
-        contactNumber: "",
-      };
-    }
-
-    setSignupDetails(updatedDetails);
-
-    const verified = !Object.keys(tmpErrorHandler).some((obj) => {
-      return tmpErrorHandler[obj].error;
-    });
-
-    console.log(updatedDetails);
-
-    if (verified) {
-      axios
-        .post(apiList.signup, updatedDetails)
-        .then((response) => {
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("type", response.data.type);
-          setLoggedin(isAuth());
-          setPopup({
-            open: true,
-            severity: "success",
-            message: "Logged in successfully",
-          });
-          console.log(response);
-        })
-        .catch((err) => {
-          setPopup({
-            open: true,
-            severity: "error",
-            message: err.response.data.message,
-          });
-          console.log(err.response);
-        });
-    } else {
-      setInputErrorHandler(tmpErrorHandler);
-      setPopup({
-        open: true,
-        severity: "error",
-        message: "Incorrect Input",
-      });
-    }
+  const handleChipDelete = (chip, index) => {
+    handleInput("skills", signupDetails.skills.filter((_, i) => i !== index));
   };
 
   return loggedin ? (
-    <Redirect to="/" />
+    <Navigate to="/" />
   ) : (
-    <Paper elevation={3} className={classes.body}>
+    <Paper elevation={3} sx={{ padding: "60px" }}>
       <Grid container direction="column" spacing={4} alignItems="center">
         <Grid item>
           <Typography variant="h3" component="h2">
@@ -335,7 +179,7 @@ const Login = (props) => {
             select
             label="Category"
             variant="outlined"
-            className={classes.inputBox}
+            sx={{ width: "400px" }}
             value={signupDetails.type}
             onChange={(event) => {
               handleInput("type", event.target.value);
@@ -347,144 +191,225 @@ const Login = (props) => {
         </Grid>
         <Grid item>
           <TextField
+            label="Email"
+            variant="outlined"
+            sx={{ width: "400px" }}
+            value={signupDetails.email}
+            onChange={(event) => {
+              handleInput("email", event.target.value);
+              if (event.target.value === "") {
+                handleInputError("email", true, "Email is required");
+              } else {
+                handleInputError("email", false, "");
+              }
+            }}
+            error={inputErrorHandler.email.error}
+            helperText={inputErrorHandler.email.message}
+          />
+        </Grid>
+        <Grid item>
+        <PasswordInput
+          label="Password"
+          value={signupDetails.password}
+          onChange={(event) => {
+            const value = event.target.value;
+            handleInput("password", value);  // Update the parent state
+            if (value === "") {
+              handleInputError("password", true, "Password is required");
+            } else {
+              handleInputError("password", false, "");
+            }
+          }}
+          error={inputErrorHandler.password.error}
+          helperText={inputErrorHandler.password.message}
+        />
+
+        </Grid>
+        <Grid item sx={{ mb: "20px" }}>
+
+         
+          <TextField
             label="Name"
+            variant="outlined"
+            sx={{ width: "400px" }}
             value={signupDetails.name}
-            onChange={(event) => handleInput("name", event.target.value)}
-            className={classes.inputBox}
-            error={inputErrorHandler.name.error}
-            helperText={inputErrorHandler.name.message}
-            onBlur={(event) => {
+            onChange={(event) => {
+              handleInput("name", event.target.value);
               if (event.target.value === "") {
                 handleInputError("name", true, "Name is required");
               } else {
                 handleInputError("name", false, "");
               }
             }}
-            variant="outlined"
-          />
-        </Grid>
-        <Grid item>
-          <EmailInput
-            label="Email"
-            value={signupDetails.email}
-            onChange={(event) => handleInput("email", event.target.value)}
-            inputErrorHandler={inputErrorHandler}
-            handleInputError={handleInputError}
-            className={classes.inputBox}
-            required={true}
-          />
-        </Grid>
-        <Grid item>
-          <PasswordInput
-            label="Password"
-            value={signupDetails.password}
-            onChange={(event) => handleInput("password", event.target.value)}
-            className={classes.inputBox}
-            error={inputErrorHandler.password.error}
-            helperText={inputErrorHandler.password.message}
-            onBlur={(event) => {
-              if (event.target.value === "") {
-                handleInputError("password", true, "Password is required");
-              } else {
-                handleInputError("password", false, "");
-              }
-            }}
+            error={inputErrorHandler.name.error}
+            helperText={inputErrorHandler.name.message}
           />
         </Grid>
         {signupDetails.type === "applicant" ? (
           <>
-            <MultifieldInput
-              education={education}
-              setEducation={setEducation}
-            />
-            <Grid item>
-              <ChipInput
-                className={classes.inputBox}
-                label="Skills"
-                variant="outlined"
-                helperText="Press enter to add skills"
-                onChange={(chips) =>
-                  setSignupDetails({ ...signupDetails, skills: chips })
-                }
-              />
+            <Grid container spacing={2} justifyContent="center">
+              {education.map((obj, key) => (
+                <React.Fragment key={key}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Institution Name"
+                      variant="outlined"
+                      fullWidth
+                      value={obj.institutionName}
+                      onChange={(event) => {
+                        const updatedEducation = [...education];
+                        updatedEducation[key].institutionName = event.target.value;
+                        setEducation(updatedEducation);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <TextField
+                      label="Start Year"
+                      type="number"
+                      variant="outlined"
+                      fullWidth
+                      value={obj.startYear}
+                      onChange={(event) => {
+                        const updatedEducation = [...education];
+                        updatedEducation[key].startYear = event.target.value;
+                        setEducation(updatedEducation);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <TextField
+                      label="End Year"
+                      type="number"
+                      variant="outlined"
+                      fullWidth
+                      value={obj.endYear}
+                      onChange={(event) => {
+                        const updatedEducation = [...education];
+                        updatedEducation[key].endYear = event.target.value;
+                        setEducation(updatedEducation);
+                      }}
+                    />
+                  </Grid>
+                </React.Fragment>
+              ))}
             </Grid>
-            <Grid item>
-              <FileUploadInput
-                className={classes.inputBox}
-                label="Resume (.pdf)"
-                icon={<DescriptionIcon />}
-                // value={files.resume}
-                // onChange={(event) =>
-                //   setFiles({
-                //     ...files,
-                //     resume: event.target.files[0],
-                //   })
-                // }
-                uploadTo={apiList.uploadResume}
-                handleInput={handleInput}
-                identifier={"resume"}
-              />
-            </Grid>
-            <Grid item>
-              <FileUploadInput
-                className={classes.inputBox}
-                label="Profile Photo (.jpg/.png)"
-                icon={<FaceIcon />}
-                // value={files.profileImage}
-                // onChange={(event) =>
-                //   setFiles({
-                //     ...files,
-                //     profileImage: event.target.files[0],
-                //   })
-                // }
-                uploadTo={apiList.uploadProfileImage}
-                handleInput={handleInput}
-                identifier={"profile"}
-              />
-            </Grid>
+            <Button
+              variant="contained"
+              sx={{
+                fontSize:'16px',
+                fontWeight: 'bold' ,
+                mt: 2,
+                color:"green",
+                bgcolor: "black",
+                
+                ":hover": {
+                  bgcolor:"#00cc00",
+                  color:"black"
+                },
+              }}
+              onClick={() => setEducation([...education, { institutionName: "", startYear: "", endYear: "" }])}
+            >
+              Add Education
+            </Button>
           </>
         ) : (
           <>
-            <Grid item style={{ width: "100%" }}>
+            <Grid item>
               <TextField
-                label="Bio (upto 250 words)"
-                multiline
-                rows={8}
-                style={{ width: "100%" }}
+                label="Company Name"
                 variant="outlined"
-                value={signupDetails.bio}
-                onChange={(event) => {
-                  if (
-                    event.target.value.split(" ").filter(function (n) {
-                      return n != "";
-                    }).length <= 250
-                  ) {
-                    handleInput("bio", event.target.value);
-                  }
-                }}
+                sx={{ width: "400px" }}
+                value={signupDetails.companyName}
+                onChange={(event) => handleInput("companyName", event.target.value)}
               />
             </Grid>
             <Grid item>
-              <PhoneInput
-                country={"in"}
-                value={phone}
-                onChange={(phone) => setPhone(phone)}
+              <TextField
+                label="Company Website"
+                variant="outlined"
+                sx={{ width: "400px" }}
+                value={signupDetails.companyWebsite}
+                onChange={(event) => handleInput("companyWebsite", event.target.value)}
               />
             </Grid>
           </>
         )}
-
         <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              signupDetails.type === "applicant"
-                ? handleLogin()
-                : handleLoginRecruiter();
+          <PhoneInput
+            country="us"
+            value={phone}
+            onChange={setPhone}
+            inputStyle={{ width: "400px" }}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            label="Bio"
+            variant="outlined"
+            multiline
+            rows={4}
+            sx={{ width: "400px" }}
+            value={signupDetails.bio}
+            onChange={(event) => handleInput("bio", event.target.value)}
+          />
+        </Grid>
+      { signupDetails.type==="applicant" &&  <Grid item>
+       
+        <FileUploadInput
+           
+            uploadTo={apiList.uploadResume}
+            handleInput={(fileName) => handleInput("resume", fileName)}
+            name="Resume"
+            icon={<DescriptionIcon />}
+          />
+        </Grid>}
+       {signupDetails.type==="applicant" &&  <Grid item>
+          <FileUploadInput
+            uploadTo={apiList.uploadProfileImage}
+            handleInput={(fileName) => handleInput("profile", fileName)}
+            name="Profile Image"
+            icon={<FaceIcon />}
+          />
+        </Grid>}
+       {signupDetails.type==="applicant" && <Grid item>
+          <Typography variant="h6">Skills</Typography>
+          <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {signupDetails.skills.map((skill, index) => (
+              <Chip
+                key={index}
+                label={skill}
+                onDelete={() => handleChipDelete(skill, index)}
+              />
+            ))}
+          </Box>
+          <TextField
+            variant="outlined"
+            label="Add Skill"
+            sx={{ marginTop: "10px", width: "400px" }}
+            onKeyPress={(event) => {
+              if (event.key === "Enter" && event.target.value !== "") {
+                handleChipAdd(event.target.value);
+                event.target.value = "";
+              }
             }}
-            className={classes.submitButton}
-          >
+          />
+        </Grid>}
+        <Grid item>
+          <Button 
+          sx={{
+            fontSize:'16px',
+            fontWeight: 'bold' ,
+            mt: 2,
+            color:"green",
+            bgcolor: "black",
+            
+            ":hover": {
+              bgcolor:"#00cc00",
+              color:"black"
+            },
+          }}
+          variant="contained" onClick={handleLogin}>
             Signup
           </Button>
         </Grid>
@@ -493,25 +418,4 @@ const Login = (props) => {
   );
 };
 
-export default Login;
-
-// {/* <Grid item>
-//           <PasswordInput
-//             label="Re-enter Password"
-//             value={signupDetails.tmpPassword}
-//             onChange={(event) => handleInput("tmpPassword", event.target.value)}
-//             className={classes.inputBox}
-//             labelWidth={140}
-//             helperText={inputErrorHandler.tmpPassword.message}
-//             error={inputErrorHandler.tmpPassword.error}
-//             onBlur={(event) => {
-//               if (event.target.value !== signupDetails.password) {
-//                 handleInputError(
-//                   "tmpPassword",
-//                   true,
-//                   "Passwords are not same."
-//                 );
-//               }
-//             }}
-//           />
-//         </Grid> */}
+export default Signup;
