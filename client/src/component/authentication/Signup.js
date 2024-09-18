@@ -357,7 +357,7 @@ const Signup = () => {
             icon={<FaceIcon />}
           />
         </Grid>
-        <Grid item>
+        <Grid item> 
           <Typography variant="h6">Skills</Typography>
           <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {signupDetails.skills.map((skill, index) => (

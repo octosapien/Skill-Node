@@ -96,7 +96,7 @@ const Login = (props) => {
     >
       <Paper elevation={3} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Login
+          Login 
         </Typography>
         <Box sx={{ mt: 2 }}>
           <TextField
