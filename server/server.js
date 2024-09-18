@@ -6,11 +6,9 @@ const fs = require("fs");
 const dotenv=require("dotenv");
 const connectDB = require("./config/connectDB");
 dotenv.config();
-
-//Connecting to MongoDB
+// const weight=require('./recommendedSkills');
 connectDB();
 
-// initialising directories
 if (!fs.existsSync("./public")) {
   fs.mkdirSync("./public");
 }
@@ -40,6 +38,8 @@ app.use("/api", require("./routes/userRoutes"));
 app.use("/api", require("./routes/jobApplicationRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
+app.use("/api", require("./recommendedSkills"));
+app.use("/api", require("./skillRanking"));
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}!`);

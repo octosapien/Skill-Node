@@ -1,5 +1,7 @@
-import { Snackbar, Slide } from "@material-ui/core";
-import { Alert } from "@material-ui/lab";
+import { Snackbar, Slide } from "@mui/material"; // Updated import for MUI v5
+import MuiAlert from "@mui/material/Alert"; // Updated import for MUI v5
+
+const Alert = MuiAlert;
 
 const MessagePopup = (props) => {
   const handleClose = (event, reason) => {
@@ -8,8 +10,14 @@ const MessagePopup = (props) => {
     }
     props.setOpen(false);
   };
+
   return (
-    <Snackbar open={props.open} onClose={handleClose} autoHideDuration={2000}>
+    <Snackbar
+      open={props.open}
+      autoHideDuration={2000}
+      onClose={handleClose}
+      TransitionComponent={Slide} // Optional: Slide transition, you can remove or replace with other transitions if needed
+    >
       <Alert onClose={handleClose} severity={props.severity}>
         {props.message}
       </Alert>

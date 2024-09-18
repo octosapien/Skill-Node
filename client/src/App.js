@@ -1,6 +1,8 @@
 import { createContext, useState } from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
-import { Grid, makeStyles } from "@material-ui/core";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Grid } from "@mui/material"; // Updated MUI import
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 import Welcome, { ErrorPage } from "./component/Welcome";
 import Navbar from "./component/Navbar";
@@ -17,29 +19,31 @@ import AcceptedApplicants from "./component/recruiter/AcceptedApplicants";
 import RecruiterProfile from "./component/recruiter/Profile";
 import MessagePopup from "./modules/MessagePopup";
 import isAuth, { userType } from "./modules/isAuth";
-
-const useStyles = makeStyles((theme) => ({
-  body: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "98vh",
-    paddingTop: "64px",
-    boxSizing: "border-box",
-    width: "100%",
-  },
+import { styled } from "@mui/system"; // New MUI styled approach
+import HomePage from "./component/homepage";
+import TrendingSkills from "./component/trendingSkills";
+import SkillRecommendation from "./component/recommendedSkills";
+// Using the new styled approach for body instead of makeStyles
+const BodyWrapper = styled(Grid)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  minHeight: "98vh",
+  paddingTop: "64px",
+  boxSizing: "border-box",
+  width: "100%",
 }));
 
 export const SetPopupContext = createContext();
 
 function App() {
-  const classes = useStyles();
   const [popup, setPopup] = useState({
     open: false,
     severity: "",
     message: "",
   });
+
   return (
     <BrowserRouter>
       <SetPopupContext.Provider value={setPopup}>
@@ -47,49 +51,29 @@ function App() {
           <Grid item xs>
             <Navbar />
           </Grid>
-          <Grid item className={classes.body}>
-            <Switch>
-              <Route exact path="/">
-                <Welcome />
-              </Route>
-              <Route exact path="/login">
-                <Login />
-              </Route>
-              <Route exact path="/signup">
-                <Signup />
-              </Route>
-              <Route exact path="/logout">
-                <Logout />
-              </Route>
-              <Route exact path="/home">
-                <Home />
-              </Route>
-              <Route exact path="/applications">
-                <Applications />
-              </Route>
-              <Route exact path="/profile">
-                {userType() === "recruiter" ? (
-                  <RecruiterProfile />
-                ) : (
-                  <Profile />
-                )}
-              </Route>
-              <Route exact path="/addjob">
-                <CreateJobs />
-              </Route>
-              <Route exact path="/myjobs">
-                <MyJobs />
-              </Route>
-              <Route exact path="/job/applications/:jobId">
-                <JobApplications />
-              </Route>
-              <Route exact path="/employees">
-                <AcceptedApplicants />
-              </Route>
-              <Route>
-                <ErrorPage />
-              </Route>
-            </Switch>
+      
+          <Grid item>
+            {/* Body wrapped with the new styled component */}
+            <BodyWrapper container item>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/trending-skills" element={<TrendingSkills />} />
+                <Route path="/recommended-skills" element={<SkillRecommendation />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/logout" element={<Logout />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/applications" element={<Applications />} />
+                <Route path="/profile" element={
+                  userType() === "recruiter" ? <RecruiterProfile /> : <Profile />
+                } />
+                <Route path="/addjob" element={<CreateJobs />} />
+                <Route path="/myjobs" element={<MyJobs />} />
+                <Route path="/job/applications/:jobId" element={<JobApplications />} />
+                <Route path="/employees" element={<AcceptedApplicants />} />
+                <Route path="*" element={<ErrorPage />} />
+              </Routes>
+            </BodyWrapper>
           </Grid>
         </Grid>
         <MessagePopup
