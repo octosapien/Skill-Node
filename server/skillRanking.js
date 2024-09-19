@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-const Graph = mongoose.models.Graph
+const {Graph} = mongoose.models.Graph
   
 
 // Function to rank skills based on their node degree (number of connections)

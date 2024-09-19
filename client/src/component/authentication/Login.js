@@ -7,17 +7,17 @@ import EmailInput from "../../modules/EmailInput";
 import { SetPopupContext } from "../../App";
 import apiList from "../../modules/apiList";
 import isAuth from "../../modules/isAuth";
-
+ 
 const Login = (props) => {
   const setPopup = useContext(SetPopupContext);
   const [loggedin, setLoggedin] = useState(isAuth());
   const navigate = useNavigate(); // React Router v6
-
+ 
   const [loginDetails, setLoginDetails] = useState({
     email: "",
     password: "",
   });
-
+ 
   const [inputErrorHandler, setInputErrorHandler] = useState({
     email: {
       error: false,
@@ -28,14 +28,14 @@ const Login = (props) => {
       message: "",
     },
   });
-
+ 
   const handleInput = (key, value) => {
     setLoginDetails({
       ...loginDetails,
       [key]: value,
     });
   };
-
+ 
   const handleInputError = (key, status, message) => {
     setInputErrorHandler({
       ...inputErrorHandler,
@@ -45,7 +45,7 @@ const Login = (props) => {
       },
     });
   };
-
+ 
   const handleLogin = () => {
     const verified = !Object.keys(inputErrorHandler).some((obj) => {
       return inputErrorHandler[obj].error;
@@ -81,7 +81,7 @@ const Login = (props) => {
       });
     }
   };
-
+ 
   return loggedin ? (
     navigate("/") // Navigate if already logged in
   ) : (
@@ -96,7 +96,7 @@ const Login = (props) => {
     >
       <Paper elevation={3} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Login
+          Login 
         </Typography>
         <Box sx={{ mt: 2 }}>
           <TextField
@@ -123,14 +123,10 @@ const Login = (props) => {
             variant="contained"
             fullWidth
             sx={{
-              fontSize: '16px',
-              fontWeight: 'bold',
               mt: 2,
-              color: "green",
-              bgcolor: "black",
+              bgcolor: "primary.main",
               ":hover": {
-                bgcolor: "#00cc00",
-                color: "black",
+                bgcolor: "primary.dark",
               },
             }}
           >
@@ -141,5 +137,5 @@ const Login = (props) => {
     </Box>
   );
 };
-
+ 
 export default Login;

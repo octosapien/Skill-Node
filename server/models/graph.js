@@ -49,4 +49,9 @@ const GraphSchema = new Schema({
 // Export model, ensuring it is only defined once
 const Graph1 = mongoose.models.Graph || mongoose.model('Graph1', GraphSchema);
 
-module.exports = Graph1;
+
+const graphSchema = new mongoose.Schema({
+    nodes: Object, // Store the graph as a JSON object
+});
+const Graph =  mongoose.model('Graph', graphSchema);
+module.exports ={Graph,Graph1};

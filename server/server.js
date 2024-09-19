@@ -148,6 +148,8 @@ app.get("/api/frequent", async (req, res) => {
 
 
 
+
+
 // Routing
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api", [
@@ -155,7 +157,7 @@ app.use("/api", [
   require("./routes/ratingRoutes"),
   require("./routes/userRoutes"),
   require("./routes/jobApplicationRoutes"),
-  require("./weight"),
+  require("./recommendedSkills"),
   require("./skillRanking")
 ]);
 app.use("/upload", require("./routes/uploadRoutes"));

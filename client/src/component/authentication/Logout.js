@@ -19,4 +19,5 @@ const Logout = (props) => {
   return <Navigate to="/login" />;
 };
 
-export default Logout;
+export default Logout; 
+ 

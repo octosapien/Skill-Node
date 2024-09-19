@@ -1,299 +1,307 @@
-const Job=require("../models/job");
+const express = require('express');
+const mongoose = require('mongoose');
+const Job = require("../models/job");
+const Graph=require("../models/graph");
+// Define Graph Schema and Model
 
+// Helper functions for graph updates
 
-const addJob=(req, res) => {
-    const user = req.user;
-  
-    if (user.type != "recruiter") {
-      res.status(401).json({
-        message: "You don't have permissions to add jobs",
-      });
-      return;
-    }
-  
-    const data = req.body;
-  
-    let job = new Job({
-      userId: user._id,
-      title: data.title,
-      maxApplicants: data.maxApplicants,
-      maxPositions: data.maxPositions,
-      dateOfPosting: data.dateOfPosting,
-      deadline: data.deadline,
-      skillsets: data.skillsets,
-      jobType: data.jobType,
-      duration: data.duration,
-      salary: data.salary,
-      rating: data.rating,
+// Calculate the weight of a job based on rating, salary, and maxPositions
+const calculateWeight = (job) => {
+  return 1 / (job.rating * 0.4 + job.salary * 0.3 + job.maxPositions * 0.3);
+};
+
+// Add/Update graph based on job data
+const updateGraphWithJob = async (job) => {
+  let graphDoc = await Graph.findOne({});
+  let graph = graphDoc ? graphDoc.nodes : {};
+
+  const weight = calculateWeight(job);
+
+  // Add/Update nodes and edges for the job's skills
+  job.skillsets.forEach((skill, index) => {
+    if (!graph[skill]) graph[skill] = [];
+
+    job.skillsets.forEach((relatedSkill, i) => {
+      if (i !== index) {
+        const existingEdge = graph[skill].find(edge => edge.skill === relatedSkill);
+        if (!existingEdge) {
+          graph[skill].push({ skill: relatedSkill, jobId: job._id, weight });
+        }
+      }
     });
-  
-    job
-      .save()
-      .then(() => {
-        res.json({ message: "Job added successfully to the database" });
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
+  });
+
+  // Save updated graph
+  await Graph.updateOne({}, { nodes: graph }, { upsert: true });
+};
+
+// Remove job from the graph
+const removeJobFromGraph = async (job) => {
+  let graphDoc = await Graph.findOne({});
+  let graph = graphDoc ? graphDoc.nodes : {};
+
+  // Remove edges related to the job's skills
+  job.skillsets.forEach(skill => {
+    if (graph[skill]) {
+      graph[skill] = graph[skill].filter(edge => edge.jobId.toString() !== job._id.toString());
+    }
+  });
+
+  // Remove empty nodes
+  Object.keys(graph).forEach(skill => {
+    if (graph[skill].length === 0) {
+      delete graph[skill];
+    }
+  });
+
+  // Save updated graph
+  await Graph.updateOne({}, { nodes: graph }, { upsert: true });
+};
+
+// Add job functionality with graph update
+const addJob = (req, res) => {
+  const user = req.user;
+
+  if (user.type != "recruiter") {
+    res.status(401).json({
+      message: "You don't have permissions to add jobs",
+    });
+    return;
   }
 
-  const deleteJob=(req, res) => {
-    const user = req.user;
-    if (user.type != "recruiter") {
-      res.status(401).json({
-        message: "You don't have permissions to delete the job",
+  const data = req.body;
+
+  let job = new Job({
+    userId: user._id,
+    title: data.title,
+    maxApplicants: data.maxApplicants,
+    maxPositions: data.maxPositions,
+    dateOfPosting: data.dateOfPosting,
+    deadline: data.deadline,
+    skillsets: data.skillsets,
+    jobType: data.jobType,
+    duration: data.duration,
+    salary: data.salary,
+    rating: data.rating,
+  });
+
+  job
+    .save()
+    .then(async (savedJob) => {
+      // Update graph with new job
+      await updateGraphWithJob({
+        _id: savedJob._id,
+        rating: data.rating,
+        salary: data.salary,
+        maxPositions: data.maxPositions,
+        skillsets: data.skillsets
       });
-      return;
-    }
-    Job.findOneAndDelete({
-      _id: req.params.id,
-      userId: user.id,
+
+      res.json({ message: "Job added successfully to the database and graph updated" });
     })
-      .then((job) => {
-        if (job === null) {
-          res.status(401).json({
-            message: "You don't have permissions to delete the job",
-          });
-          return;
-        }
-        res.json({
-          message: "Job deleted successfully",
-        });
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+// Delete job functionality with graph update
+const deleteJob = (req, res) => {
+  const user = req.user;
+  if (user.type != "recruiter") {
+    res.status(401).json({
+      message: "You don't have permissions to delete the job",
+    });
+    return;
   }
 
-  const getJob=(req, res) => {
-    Job.findOne({ _id: req.params.id })
-      .then((job) => {
-        if (job == null) {
-          res.status(400).json({
-            message: "Job does not exist",
-          });
-          return;
-        }
-        res.json(job);
-      })
-      .catch((err) => {
-        res.status(400).json(err);
+  Job.findOneAndDelete({
+    _id: req.params.id,
+    userId: user.id,
+  })
+    .then(async (job) => {
+      if (!job) {
+        res.status(401).json({
+          message: "You don't have permissions to delete the job",
+        });
+        return;
+      }
+
+      // Update graph by removing the job
+      await removeJobFromGraph(job);
+
+      res.json({
+        message: "Job deleted successfully and graph updated",
       });
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+// Get a specific job
+const getJob = (req, res) => {
+  Job.findOne({ _id: req.params.id })
+    .then((job) => {
+      if (job == null) {
+        res.status(400).json({
+          message: "Job does not exist",
+        });
+        return;
+      }
+      res.json(job);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+// Get all jobs with filtering and sorting
+const getAllJob = (req, res) => {
+  let user = req.user;
+  let findParams = {};
+  let sortParams = {};
+
+  if (user.type === "recruiter" && req.query.myjobs) {
+    findParams = {
+      ...findParams,
+      userId: user._id,
+    };
   }
 
-  const getAllJob=(req, res) => {
-    let user = req.user;
-  
-    let findParams = {};
-    let sortParams = {};
-  
-    // const page = parseInt(req.query.page) ? parseInt(req.query.page) : 1;
-    // const limit = parseInt(req.query.limit) ? parseInt(req.query.limit) : 10;
-    // const skip = page - 1 >= 0 ? (page - 1) * limit : 0;
-  
-    // to list down jobs posted by a particular recruiter
-    if (user.type === "recruiter" && req.query.myjobs) {
-      findParams = {
-        ...findParams,
-        userId: user._id,
-      };
-    }
-  
-    if (req.query.q) {
-      findParams = {
-        ...findParams,
-        title: {
-          $regex: new RegExp(req.query.q, "i"),
-        },
-      };
-    }
-  
-    if (req.query.jobType) {
-      let jobTypes = [];
-      if (Array.isArray(req.query.jobType)) {
-        jobTypes = req.query.jobType;
-      } else {
-        jobTypes = [req.query.jobType];
-      }
-      console.log(jobTypes);
-      findParams = {
-        ...findParams,
-        jobType: {
-          $in: jobTypes,
-        },
-      };
-    }
-  
-    if (req.query.salaryMin && req.query.salaryMax) {
-      findParams = {
-        ...findParams,
-        $and: [
-          {
-            salary: {
-              $gte: parseInt(req.query.salaryMin),
-            },
-          },
-          {
-            salary: {
-              $lte: parseInt(req.query.salaryMax),
-            },
-          },
-        ],
-      };
-    } else if (req.query.salaryMin) {
-      findParams = {
-        ...findParams,
-        salary: {
-          $gte: parseInt(req.query.salaryMin),
-        },
-      };
-    } else if (req.query.salaryMax) {
-      findParams = {
-        ...findParams,
-        salary: {
-          $lte: parseInt(req.query.salaryMax),
-        },
-      };
-    }
-  
-    if (req.query.duration) {
-      findParams = {
-        ...findParams,
-        duration: {
-          $lt: parseInt(req.query.duration),
-        },
-      };
-    }
-  
-    if (req.query.asc) {
-      if (Array.isArray(req.query.asc)) {
-        req.query.asc.map((key) => {
-          sortParams = {
-            ...sortParams,
-            [key]: 1,
-          };
-        });
-      } else {
-        sortParams = {
-          ...sortParams,
-          [req.query.asc]: 1,
-        };
-      }
-    }
-  
-    if (req.query.desc) {
-      if (Array.isArray(req.query.desc)) {
-        req.query.desc.map((key) => {
-          sortParams = {
-            ...sortParams,
-            [key]: -1,
-          };
-        });
-      } else {
-        sortParams = {
-          ...sortParams,
-          [req.query.desc]: -1,
-        };
-      }
-    }
-  
-    console.log(findParams);
-    console.log(sortParams);
-  
-    // Job.find(findParams).collation({ locale: "en" }).sort(sortParams);
-    // .skip(skip)
-    // .limit(limit)
-  
-    let arr = [
-      {
-        $lookup: {
-          from: "recruiterinfos",
-          localField: "userId",
-          foreignField: "userId",
-          as: "recruiter",
-        },
+  if (req.query.q) {
+    findParams = {
+      ...findParams,
+      title: {
+        $regex: new RegExp(req.query.q, "i"),
       },
-      { $unwind: "$recruiter" },
-      { $match: findParams },
-    ];
-  
-    if (Object.keys(sortParams).length > 0) {
-      arr = [
-        {
-          $lookup: {
-            from: "recruiterinfos",
-            localField: "userId",
-            foreignField: "userId",
-            as: "recruiter",
-          },
-        },
-        { $unwind: "$recruiter" },
-        { $match: findParams },
-        {
-          $sort: sortParams,
-        },
-      ];
-    }
-  
-    console.log(arr);
-  
-    Job.aggregate(arr)
-      .then((posts) => {
-        if (posts == null) {
-          res.status(404).json({
-            message: "No job found",
-          });
-          return;
-        }
-        res.json(posts);
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
+    };
   }
- 
-  const updateJob=(req, res) => {
-    const user = req.user;
-    if (user.type != "recruiter") {
-      res.status(401).json({
-        message: "You don't have permissions to change the job details",
-      });
-      return;
-    }
-    Job.findOne({
-      _id: req.params.id,
-      userId: user.id,
+
+  if (req.query.jobType) {
+    let jobTypes = Array.isArray(req.query.jobType) ? req.query.jobType : [req.query.jobType];
+    findParams = {
+      ...findParams,
+      jobType: { $in: jobTypes },
+    };
+  }
+
+  if (req.query.salaryMin || req.query.salaryMax) {
+    findParams = {
+      ...findParams,
+      salary: {
+        ...(req.query.salaryMin && { $gte: parseInt(req.query.salaryMin) }),
+        ...(req.query.salaryMax && { $lte: parseInt(req.query.salaryMax) }),
+      },
+    };
+  }
+
+  if (req.query.duration) {
+    findParams = {
+      ...findParams,
+      duration: { $lt: parseInt(req.query.duration) },
+    };
+  }
+
+  if (req.query.asc) {
+    sortParams = {
+      ...sortParams,
+      [req.query.asc]: 1,
+    };
+  }
+
+  if (req.query.desc) {
+    sortParams = {
+      ...sortParams,
+      [req.query.desc]: -1,
+    };
+  }
+
+  let arr = [
+    {
+      $lookup: {
+        from: "recruiterinfos",
+        localField: "userId",
+        foreignField: "userId",
+        as: "recruiter",
+      },
+    },
+    { $unwind: "$recruiter" },
+    { $match: findParams },
+    ...(Object.keys(sortParams).length > 0 ? [{ $sort: sortParams }] : []),
+  ];
+
+  Job.aggregate(arr)
+    .then((posts) => {
+      if (posts == null) {
+        res.status(404).json({
+          message: "No job found",
+        });
+        return;
+      }
+      res.json(posts);
     })
-      .then((job) => {
-        if (job == null) {
-          res.status(404).json({
-            message: "Job does not exist",
-          });
-          return;
-        }
-        const data = req.body;
-        if (data.maxApplicants) {
-          job.maxApplicants = data.maxApplicants;
-        }
-        if (data.maxPositions) {
-          job.maxPositions = data.maxPositions;
-        }
-        if (data.deadline) {
-          job.deadline = data.deadline;
-        }
-        job
-          .save()
-          .then(() => {
-            res.json({
-              message: "Job details updated successfully",
-            });
-          })
-          .catch((err) => {
-            res.status(400).json(err);
-          });
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+// Update job functionality with graph update
+const updateJob = (req, res) => {
+  const user = req.user;
+  if (user.type != "recruiter") {
+    res.status(401).json({
+      message: "You don't have permissions to change the job details",
+    });
+    return;
   }
-  module.exports={updateJob, getAllJob, getJob, addJob, deleteJob};
+
+  Job.findOne({
+    _id: req.params.id,
+    userId: user.id,
+  })
+    .then(async (job) => {
+      if (job == null) {
+        res.status(404).json({
+          message: "Job does not exist",
+        });
+        return;
+      }
+
+      const data = req.body;
+      let oldJob = { ...job._doc };
+
+      if (data.maxApplicants) job.maxApplicants = data.maxApplicants;
+      if (data.maxPositions) job.maxPositions = data.maxPositions;
+      if (data.deadline) job.deadline = data.deadline;
+      if (data.skillsets) job.skillsets = data.skillsets;
+      if (data.salary) job.salary = data.salary;
+      if (data.rating) job.rating = data.rating;
+
+      job
+        .save()
+        .then(async (updatedJob) => {
+          // Remove old job's graph data and update with new job data
+          await removeJobFromGraph(oldJob);
+          await updateGraphWithJob({
+            _id: updatedJob._id,
+            rating: updatedJob.rating,
+            salary: updatedJob.salary,
+            maxPositions: updatedJob.maxPositions,
+            skillsets: updatedJob.skillsets,
+          });
+
+          res.json({
+            message: "Job details updated successfully and graph updated",
+          });
+        })
+        .catch((err) => {
+          res.status(400).json(err);
+        });
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+module.exports = { updateJob, getAllJob, getJob, addJob, deleteJob };

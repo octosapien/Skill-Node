@@ -1,6 +1,8 @@
 import { createContext, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Grid } from "@mui/material"; // Updated MUI import
+// import "slick-carousel/slick/slick.css";
+// import "slick-carousel/slick/slick-theme.css";
 
 import Welcome, { ErrorPage } from "./component/Welcome";
 import Navbar from "./component/Navbar";
@@ -19,10 +21,11 @@ import MessagePopup from "./modules/MessagePopup";
 import isAuth, { userType } from "./modules/isAuth";
 import { styled } from "@mui/system"; // New MUI styled approach
 import "./index.css"
-import HomePage from "./component/HomePage";
+import HomePage from "./component/homepage";
 import FrequentSkillsPage from "./component/Frequent";
-
+import TrendingSkills from "./component/trendingSkills"
 import JobRecommendationsPage from "./component/TransitionJobRecommendations";
+import SkillRecommendations from "./component/recommendedSkills"
 // Using the new styled approach for body instead of makeStyles
 const BodyWrapper = styled(Grid)(({ theme }) => ({
   display: "flex",
@@ -44,6 +47,7 @@ function App() {
     message: "",
   });
 
+
   return (
     <>
     {/* <HomePage /> */}
@@ -60,7 +64,8 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/frequently" element={<FrequentSkillsPage />} />
                 <Route path="/transition" element={<JobRecommendationsPage />} />
-
+                <Route path="/trending-skills" element={<TrendingSkills />} />
+                <Route path="/recommended-skills" element={<SkillRecommendations />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/logout" element={<Logout />} />

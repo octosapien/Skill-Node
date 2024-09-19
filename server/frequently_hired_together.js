@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Graph1 = require("./models/graph"); // Update path as needed
+const {Graph1} = require("./models/graph"); // Update path as needed
 const JobGraph = require("./models/jobGraph"); // Update path as needed
 
 // Function to add a job to the weighted graph

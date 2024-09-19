@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Graph = require("./models/graph");
+const {Graph1} = require("./models/graph");
 const Job = require("./models/job"); // Assuming you have a Job model for the jobs collection
 
 // Function to calculate the weight between skills
@@ -13,7 +13,7 @@ function calculateWeight(pay, openings) {
 
 // Function to add an edge between two skills in the graph
 async function addEdgeToGraph(skill1, skill2, pay, openings) {
-  const graph = await Graph.findOne() || new Graph();
+  const graph = await Graph1.findOne() || new Graph1();
   const weight = calculateWeight(pay, openings);
 
   let edge = graph.edges.find(
@@ -81,7 +81,7 @@ function bellmanFordAllPairs(graph) {
 // Function to recommend jobs based on known skills
 // Function to recommend jobs based on known skills
 async function recommendSkillsWithCosts(knownSkills) {
-    const graph = await Graph.findOne(); // Fetch the graph from the database
+    const graph = await Graph1.findOne(); // Fetch the graph from the database
     if (!graph) return []; // Handle case if the graph is empty
   
     const { distanceMatrix, skillArray } = bellmanFordAllPairs(graph); // Call Bellman-Ford with the graph
