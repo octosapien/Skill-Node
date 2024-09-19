@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { dijkstra, floydWarshall } = require("./dijkstra & floydwarshall"); // Ensure you have this module with appropriate functions
 const router = express.Router();
 const job = require("./models/job");
-const Graph = require("./models/graph");
+const Graph = require("./models/graph2");
 
 // Function to choose between Dijkstra and Floyd-Warshall
 function chooseAlgorithm(nodes) {
@@ -32,6 +32,7 @@ router.post('/recommend-skills', async (req, res) => {
   const { userSkills } = req.body;
 
   // Fetch the latest graph from DB
+  // console.log(Graph);
   const graphDoc = await Graph.findOne({});
   const graph = graphDoc ? graphDoc.nodes : {};
 
@@ -40,6 +41,7 @@ router.post('/recommend-skills', async (req, res) => {
   
   let recommendedSkills;
   if (algorithm === 'dijkstra') {
+    console.log(userSkills);
     recommendedSkills = dijkstra(graph, userSkills);
   } else {
     recommendedSkills = floydWarshall(graph, userSkills);
@@ -55,7 +57,7 @@ router.post('/recommend-skills', async (req, res) => {
     weight
   }));
 
-  console.log(graph);
+  // console.log(graph);
   res.json({ recommendedSkills: sortedRecommendedSkills });
 });
 

@@ -15,15 +15,17 @@ function calculateWeight(pay, openings) {
 async function addEdgeToGraph(skill1, skill2, pay, openings) {
   const graph = await Graph1.findOne() || new Graph1();
   const weight = calculateWeight(pay, openings);
+  // console.log(graph);
 
   let edge = graph.edges.find(
     e => (e.skill1 === skill1 && e.skill2 === skill2) || (e.skill1 === skill2 && e.skill2 === skill1)
   );
 
   if (!edge) {
-    edge = { skill1, skill2, weight };
+     edge = { skill1, skill2, weight };
     graph.edges.push(edge);
   } else {
+    // console.log(edge);
     edge.weight = weight; // Update the weight
   }
 
@@ -77,6 +79,39 @@ function bellmanFordAllPairs(graph) {
     return { distanceMatrix, skillArray };
   }
   
+
+
+// Function to remove edges between skills in Graph1 based on the job's skills
+async function removeEdgesFromGraph(requiredSkills) {
+  const graph = await Graph1.findOne();
+  if (!graph) return;
+
+  // Iterate over pairs of skills and remove corresponding edges
+  for (let i = 0; i < requiredSkills.length; i++) {
+    for (let j = i + 1; j < requiredSkills.length; j++) {
+      graph.edges = graph.edges.filter(
+        e => !(e.skill1 === requiredSkills[i] && e.skill2 === requiredSkills[j]) &&
+             !(e.skill1 === requiredSkills[j] && e.skill2 === requiredSkills[i])
+      );
+    }
+  }
+
+  await graph.save();
+}
+
+// Function to delete a job and remove associated edges from Graph1
+async function deleteJobFromGraph(jobId) {
+  const job = await Job.findById(jobId);
+  if (!job) throw new Error('Job not found');
+
+  const { skillsets: requiredSkills } = job;
+
+  // Remove edges from the graph corresponding to this job's skills
+  await removeEdgesFromGraph(requiredSkills);
+
+  // Delete the job from the Job collection
+  await Job.findByIdAndDelete(jobId);
+}
 
 // Function to recommend jobs based on known skills
 // Function to recommend jobs based on known skills
@@ -134,7 +169,4 @@ async function recommendSkillsWithCosts(knownSkills) {
     return recommendations; // Return sorted recommendations
   }
   
-  module.exports = { addJobToGraph, recommendSkillsWithCosts };
-  
-
-module.exports = { addJobToGraph, recommendSkillsWithCosts };
+  module.exports = { addJobToGraph, recommendSkillsWithCosts, deleteJobFromGraph };

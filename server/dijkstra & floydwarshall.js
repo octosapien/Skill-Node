@@ -3,6 +3,7 @@ function dijkstra(graph, startNodes) {
     const distances = {};
     const priorityQueue = [];
   
+
     startNodes.forEach(skill => {
       distances[skill] = 0;
       priorityQueue.push({ skill, weight: 0 });

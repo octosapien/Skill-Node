@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const {Graph1} = require("./models/graph"); // Update path as needed
 const JobGraph = require("./models/jobGraph"); // Update path as needed
+const Job = require("./models/job");
 
 // Function to add a job to the weighted graph
 async function addJobToGraph(jobId, skills, pay, openings) {
@@ -30,7 +31,7 @@ async function addJobToGraph(jobId, skills, pay, openings) {
   }
 
   await graph.save();
-  console.log(graph);
+  // console.log(graph);
 }
 
 // Helper function to calculate weight based on job attributes
@@ -119,10 +120,42 @@ async function dfs(jobGraph, skill, visited, cutoff) {
   return component;
 }
 
+async function removeEdgesFromJobGraph(skills, jobId) {
+  const jobGraph = await JobGraph.findOne();
+  if (!jobGraph) return;
+
+  // Filter out edges that correspond to the given job and skills
+  jobGraph.edges = jobGraph.edges.filter(edge => {
+    const isInSkillset = (skills.includes(edge.skill1) && skills.includes(edge.skill2));
+    if (isInSkillset) {
+      edge.jobs = edge.jobs.filter(id => id.toString() !== jobId.toString());
+      return edge.jobs.length > 0; // Keep edge only if there are other jobs using it
+    }
+    return true;
+  });
+
+  await jobGraph.save();
+}
+
+// Function to delete a job and remove associated edges from JobGraph
+async function deleteJobFromJobGraph(jobId) {
+  const job = await Job.findById(jobId);
+  if (!job) throw new Error('Job not found');
+
+  const { skills } = job;
+
+  // Remove edges from the job graph corresponding to this job's skills
+  await removeEdgesFromJobGraph(skills, jobId);
+
+  // Delete the job from the Job collection
+  await Job.findByIdAndDelete(jobId);
+}
+
+
 // Function to update both graphs when a new job is added
 async function updateGraph(jobId, skills, pay, openings) {
   await addJobToGraph(jobId, skills, pay, openings); // Update the weighted graph
   await buildJobGraph([ { _id: jobId, skills } ]); // Update the JobGraph with frequently hired skills
 }
 
-module.exports = { updateGraph, addEdgeToJobGraph, buildJobGraph, findFrequentlyHiredClusters };
+module.exports = { updateGraph, addEdgeToJobGraph, buildJobGraph, findFrequentlyHiredClusters,deleteJobFromJobGraph  };

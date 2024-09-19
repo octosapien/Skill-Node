@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Job = require("../models/job");
-const Graph=require("../models/graph");
-// Define Graph Schema and Model
+const Graph = require("../models/graph2");
+const { addJobToGraph: updateTransitionGraph, deleteJobFromGraph: removeTransitionJobFromGraph } = require('../transition');
+const { updateGraph: updateFreqHiredTogetherGraph, deleteJobFromJobGraph: removeFreqHiredTogetherJobFromGraph } = require('../frequently_hired_together');
 
 // Helper functions for graph updates
 
@@ -11,7 +12,7 @@ const calculateWeight = (job) => {
   return 1 / (job.rating * 0.4 + job.salary * 0.3 + job.maxPositions * 0.3);
 };
 
-// Add/Update graph based on job data
+// Add/Update graph based on job data (transition and frequently hired together)
 const updateGraphWithJob = async (job) => {
   let graphDoc = await Graph.findOne({});
   let graph = graphDoc ? graphDoc.nodes : {};
@@ -34,9 +35,13 @@ const updateGraphWithJob = async (job) => {
 
   // Save updated graph
   await Graph.updateOne({}, { nodes: graph }, { upsert: true });
+  console.log(job);
+  // Call relevant functions from transition.js and frequently_hired_together.js
+  await updateTransitionGraph(job._id, job.skillsets, job.pay || job.salary, job.maxPositions);
+  await updateFreqHiredTogetherGraph(job._id, job.skillsets, job.pay || job.salary, job.maxPositions);
 };
 
-// Remove job from the graph
+// Remove job from the graph (transition and frequently hired together)
 const removeJobFromGraph = async (job) => {
   let graphDoc = await Graph.findOne({});
   let graph = graphDoc ? graphDoc.nodes : {};
@@ -57,13 +62,18 @@ const removeJobFromGraph = async (job) => {
 
   // Save updated graph
   await Graph.updateOne({}, { nodes: graph }, { upsert: true });
+
+  // Call relevant functions from transition.js and frequently_hired_together.js
+  await removeTransitionJobFromGraph(job._id);
+  await removeFreqHiredTogetherJobFromGraph(job._id);
 };
 
 // Add job functionality with graph update
 const addJob = (req, res) => {
+  
   const user = req.user;
-
-  if (user.type != "recruiter") {
+  console.log(req.user);
+  if (user && user.type != "recruiter") {
     res.status(401).json({
       message: "You don't have permissions to add jobs",
     });
@@ -90,6 +100,7 @@ const addJob = (req, res) => {
     .save()
     .then(async (savedJob) => {
       // Update graph with new job
+      console.log(savedJob);
       await updateGraphWithJob({
         _id: savedJob._id,
         rating: data.rating,
@@ -97,10 +108,11 @@ const addJob = (req, res) => {
         maxPositions: data.maxPositions,
         skillsets: data.skillsets
       });
-
-      res.json({ message: "Job added successfully to the database and graph updated" });
+      console.log("here");
+      res.status(201).json({ message: "Job added successfully to the database and graph updated" });
     })
     .catch((err) => {
+      console.log(err);
       res.status(400).json(err);
     });
 };
@@ -288,12 +300,10 @@ const updateJob = (req, res) => {
             rating: updatedJob.rating,
             salary: updatedJob.salary,
             maxPositions: updatedJob.maxPositions,
-            skillsets: updatedJob.skillsets,
+            skillsets: updatedJob.skillsets
           });
 
-          res.json({
-            message: "Job details updated successfully and graph updated",
-          });
+          res.json({ message: "Job updated successfully" });
         })
         .catch((err) => {
           res.status(400).json(err);
@@ -303,5 +313,6 @@ const updateJob = (req, res) => {
       res.status(400).json(err);
     });
 };
+
 
 module.exports = { updateJob, getAllJob, getJob, addJob, deleteJob };

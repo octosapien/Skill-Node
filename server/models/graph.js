@@ -37,9 +37,9 @@ const Schema = mongoose.Schema;
 
 // Define schema for Graph with additional weighted edges
 const WeightedEdgeSchema = new Schema({
-  skill1: { type: String, required: true },
-  skill2: { type: String, required: true },
-  weight: { type: Number, required: true }
+  skill1: { type: String   },
+  skill2: { type: String },
+  weight: { type: Number }
 });
 
 const GraphSchema = new Schema({
@@ -47,11 +47,8 @@ const GraphSchema = new Schema({
 });
 
 // Export model, ensuring it is only defined once
-const Graph1 = mongoose.models.Graph || mongoose.model('Graph1', GraphSchema);
+const Graph1 = mongoose.models.Graph1 || mongoose.model('Graph1', GraphSchema);
 
 
-const graphSchema = new mongoose.Schema({
-    nodes: Object, // Store the graph as a JSON object
-});
-const Graph =  mongoose.model('Graph', graphSchema);
-module.exports ={Graph,Graph1};
+
+module.exports ={Graph1};
