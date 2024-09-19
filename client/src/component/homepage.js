@@ -2,14 +2,20 @@ import React from 'react';
 import { AppBar, Toolbar, Button, Typography, Grid, TextField, Container, Card, CardContent, CardActions, Paper, Box, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import Home from './Home';
+import isAuth from '../modules/isAuth';
+
 
 const HomePage = () => {
   return (
     <div style={{ width: "100%" }}>
       <Header />
-      <SearchSection />
-      <StatsSection />
+     
+      {/* <SearchSection /> */}
+      {isAuth() && <JobListings/>}
+      {/* <StatsSection /> */}
       <JobCategories />
+      {isAuth() && <Home/>}
       <NewsletterSubscription />
       <Footer />
     </div>
@@ -78,6 +84,108 @@ const StatsSection = () => {
             </Card>
           </Grid>
         ))}
+      </Grid>
+    </Container>
+  );
+};
+const JobListings = () => {
+  const handleClick = (path) => {
+    window.location.href = path; // Redirect to the specified path
+  };
+
+  if (!isAuth()) {
+    return null;
+  }
+
+  return (
+    <Container sx={{ py: 5 }}>
+      <Typography style={{ fontWeight: '700' }} variant="h3" gutterBottom textAlign="center">
+        Get Your Stats
+      </Typography>
+      <Grid container spacing={4} justifyContent="center">
+        {/* Card for Job Transition Recommendations */}
+        <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Card>
+            <CardContent>
+              <Typography style={{ fontWeight: '700' }} variant="h6">
+                Job Transition Recommendations
+              </Typography>
+              <Typography color="textSecondary">Algorithm-based</Typography>
+              <Typography color="textSecondary">Full Time</Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                onClick={() => handleClick('/transition')}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+              >
+                Try Now
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+
+        {/* Card for Skill Recommendations */}
+        <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Card>
+            <CardContent>
+              <Typography style={{ fontWeight: '700' }} variant="h6">
+                Skill Recommendations
+              </Typography>
+              <Typography color="textSecondary">Algorithm-based</Typography>
+              <Typography color="textSecondary">Part Time</Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                onClick={() => handleClick('/recommended-skills')}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+              >
+                Try Now
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+
+        {/* Card for Frequently Hired Together */}
+        <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Card>
+            <CardContent>
+              <Typography style={{ fontWeight: '700' }} variant="h6">
+                Frequently Hired Together
+              </Typography>
+              <Typography color="textSecondary">Skills Cluster</Typography>
+              <Typography color="textSecondary">Data-based</Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                onClick={() => handleClick('/frequently')}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+              >
+                Explore Now
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+
+        {/* Card for Trending Skills */}
+        <Grid item md={3} display="flex" justifyContent="center" style={{translate:"15px"}}>
+          <Card style={{width:"500px"}}>
+            <CardContent>
+              <Typography style={{ fontWeight: '700' }} variant="h6">
+                Trending Skills
+              </Typography>
+              <Typography color="textSecondary">Market Trends</Typography>
+              <Typography color="textSecondary">High Demand</Typography>
+            </CardContent>
+            <CardActions>
+              <Button
+                onClick={() => handleClick('/trending-skills')}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+              >
+                Explore Now
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
       </Grid>
     </Container>
   );

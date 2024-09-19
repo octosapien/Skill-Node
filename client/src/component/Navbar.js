@@ -42,7 +42,7 @@ const Navbar = () => {
               <>
                 <Button
                   color="inherit"
-                  onClick={() => handleClick("/home")}
+                  onClick={() => handleClick("/")}
                   sx={{
                     color: "#fff", // White text color for all buttons
                     '&:hover': {
@@ -63,12 +63,22 @@ const Navbar = () => {
                       color: "#fff",
                     },
                   }}
-                > Add Jobs </Button>
-
-                <Button color="inherit" onClick={() => handleClick("/frequently")}>
-                Frequently Hired Together
+                >
+                  Add Jobs
                 </Button>
-
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/frequently")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Frequently Hired Together
+                </Button>
                 <Button
                   color="inherit"
                   onClick={() => handleClick("/myjobs")}
@@ -108,6 +118,46 @@ const Navbar = () => {
                 >
                   Profile
                 </Button>
+                {/* New Buttons hidden from recruiters */}
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/trending-skills")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Trending Skills
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/transition")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Transition Job
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/recommended-skills")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Recommended Skills
+                </Button>
                 <Button
                   color="inherit"
                   onClick={() => handleClick("/logout")}
@@ -126,7 +176,7 @@ const Navbar = () => {
               <>
                 <Button
                   color="inherit"
-                  onClick={() => handleClick("/home")}
+                  onClick={() => handleClick("/")}
                   sx={{
                     color: "#fff",
                     '&:hover': {
@@ -150,19 +200,19 @@ const Navbar = () => {
                 >
                   Applications
                 </Button>
-
                 <Button 
-                sx={{
-                  color: "#fff",
-                  '&:hover': {
-                    backgroundColor: "#00b140",
+                  color="inherit"
+                  onClick={() => handleClick("/frequently")}
+                  sx={{
                     color: "#fff",
-                  },
-                }}
-                color="inherit" onClick={() => handleClick("/frequently")}>
-                Frequently Hired Together
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Frequently Hired Together
                 </Button>
-
                 <Button
                   color="inherit"
                   onClick={() => handleClick("/profile")}
@@ -175,6 +225,46 @@ const Navbar = () => {
                   }}
                 >
                   Profile
+                </Button>
+                {/* New Buttons visible to applicants */}
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/trending-skills")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Trending Skills
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/transition")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Transition Job
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => handleClick("/recommended-skills")}
+                  sx={{
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#00b140",
+                      color: "#fff",
+                    },
+                  }}
+                >
+                  Recommended Skills
                 </Button>
                 <Button
                   color="inherit"
