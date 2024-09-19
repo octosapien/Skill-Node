@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Container, Typography, Card, CardContent, Grid, CircularProgress } from '@mui/material';
-
+import apiList from "../modules/apiList"
 const TrendingSkills = () => {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,7 @@ const TrendingSkills = () => {
   useEffect(() => {
     const fetchTrendingSkills = async () => {
       try {
-        const response = await axios.get('http://localhost:4444/api/trending-skills'); // Update the API endpoint as needed
+        const response = await axios.get(`${apiList.server}/api/trending-skills`); // Update the API endpoint as needed
         setSkills(response.data.trendingSkills);
       } catch (err) {
         setError('Error fetching trending skills');

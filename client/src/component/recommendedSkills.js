@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, Chip, Typography, Box, Container, Grid, Paper } from '@mui/material';
 import axios from 'axios';
+import apiList from "../modules/apiList"
 
 const SkillRecommendation = () => {
   const [userSkills, setUserSkills] = useState([]);
@@ -24,7 +25,7 @@ const SkillRecommendation = () => {
 
   const handleRecommendSkills = async () => {
     try {
-      const response = await axios.post('http://localhost:4444/api/recommend-skills', { userSkills });
+      const response = await axios.post(`${apiList.server}/api/recommend-skills`, { userSkills });
       setRecommendedSkills(response.data.recommendedSkills);
     } catch (error) {
       console.error('Error fetching recommended skills:', error);

@@ -1,6 +1,7 @@
 // src/FrequentSkillsPage.js
 import React, { useState, useEffect } from 'react';
 import './Frequent.css'; // Import the CSS file for styling
+import apiList from "../modules/apiList"
 
 const FrequentSkillsPage = () => {
   const [clusters, setClusters] = useState([]);
@@ -13,7 +14,7 @@ const FrequentSkillsPage = () => {
     const fetchClusters = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:4444/api/frequent?cutoff=${cutoff}`);
+        const response = await fetch(`${apiList.server}/api/frequent?cutoff=${cutoff}`);
         const data = await response.json();
         setClusters(data);
       } catch (error) {

@@ -1,6 +1,7 @@
 // src/JobRecommendationsPage.js
 import React, { useState } from 'react';
 import './Frequent.css'; // Import the CSS file for styles
+import apiList from "../modules/apiList"
 
 const JobRecommendationsPage = () => {
   const [knownSkills, setKnownSkills] = useState([]);
@@ -34,7 +35,7 @@ const JobRecommendationsPage = () => {
     setFormError(''); // Clear previous errors
 
     try {
-      const response = await fetch('http://localhost:4444/api/transition', {
+      const response = await fetch(`${apiList.server}/api/transition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ knownSkills })
