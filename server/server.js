@@ -24,7 +24,7 @@ if (!fs.existsSync("./public/profile")) {
 }
 
 const app = express();
-const port = 4444;
+const port = process.env.PORT || 4444;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
