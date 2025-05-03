@@ -117,6 +117,7 @@ async function deleteJobFromGraph(jobId) {
 // Function to recommend jobs based on known skills
 async function recommendSkillsWithCosts(knownSkills) {
     const graph = await Graph1.findOne(); // Fetch the graph from the database
+    console.log(graph);
     if (!graph) return []; // Handle case if the graph is empty
   
     const { distanceMatrix, skillArray } = bellmanFordAllPairs(graph); // Call Bellman-Ford with the graph

@@ -74,10 +74,53 @@ async function buildJobGraph(jobs) {
 }
 
 // Function to find clusters of skills frequently hired together
-async function findFrequentlyHiredClusters(cutoff) {
-  const jobGraph = await JobGraph.findOne();
-  if (!jobGraph) return [];
+// async function findFrequentlyHiredClusters(cutoff) {
+//   const jobGraph = await JobGraph.findOne();
+  
+//   if (!jobGraph) return [];
 
+//   const visited = new Set();
+//   const clusters = [];
+
+//   for (const edge of jobGraph.edges) {
+//     if (!visited.has(edge.skill1)) {
+//       const component = await dfs(jobGraph, edge.skill1, visited, cutoff);
+//       if (component.size > 1) {
+//         clusters.push(Array.from(component));
+//       }
+//     }
+//   }
+
+//   return clusters;
+// }
+async function findFrequentlyHiredClusters(cutoff) {
+  // Fetch all jobs from the database
+
+  const jobs = await Job.find(); 
+  
+  // Dynamically build the job graph based on jobs data
+  const jobGraph = { edges: [] };
+
+  for (const job of jobs) {
+    console.log("JOB IS : " ,job);
+    const jobId = job._id;
+    const skills = job.skillsets;
+
+    for (let i = 0; i < skills.length; i++) {
+      for (let j = i + 1; j < skills.length; j++) {
+        const edge = jobGraph.edges.find(
+          e => (e.skill1 === skills[i] && e.skill2 === skills[j]) || (e.skill1 === skills[j] && e.skill2 === skills[i])
+        );
+        if (!edge) {
+          jobGraph.edges.push({ skill1: skills[i], skill2: skills[j], jobs: [jobId], weight: 1 });
+        } else {
+          edge.jobs.push(jobId);
+        }
+      }
+    }
+  }
+
+  // Perform DFS to find connected components
   const visited = new Set();
   const clusters = [];
 
@@ -89,10 +132,9 @@ async function findFrequentlyHiredClusters(cutoff) {
       }
     }
   }
-
+  console.log("Heyo00000000000000000",clusters);
   return clusters;
 }
-
 // Helper function for DFS
 async function dfs(jobGraph, skill, visited, cutoff) {
   const stack = [skill];
@@ -104,10 +146,16 @@ async function dfs(jobGraph, skill, visited, cutoff) {
       visited.add(node);
       component.add(node);
 
+      // Get neighbors, i.e., edges where the node is connected to another skill
       const neighbors = jobGraph.edges.filter(
         e => (e.skill1 === node || e.skill2 === node) && e.jobs.length >= cutoff
       );
 
+      // Debugging: Log neighbors being processed
+      console.log(`Processing skill: ${node}`);
+      console.log(`Neighbors: ${neighbors.map(neighbor => `${neighbor.skill1} <-> ${neighbor.skill2}`)}`);
+      
+      // Traverse neighbors
       for (const neighbor of neighbors) {
         const nextSkill = neighbor.skill1 === node ? neighbor.skill2 : neighbor.skill1;
         if (!visited.has(nextSkill)) {
@@ -117,6 +165,7 @@ async function dfs(jobGraph, skill, visited, cutoff) {
     }
   }
 
+  // Return the component as an array for clustering
   return component;
 }
 

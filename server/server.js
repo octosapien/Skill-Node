@@ -146,6 +146,7 @@ app.get("/api/frequent", async (req, res) => {
     }
 
     const clusters = await findFrequentlyHiredClusters(parseInt(cutoff, 10));
+    console.log("Heyooooooooooooo1",clusters);
 
     res.status(200).json(clusters);
   } catch (error) {
